@@ -13,5 +13,6 @@ ImportAndMergeData <- function() {
     dfs$iss <- dfs$iss %>%
         dplyr::select("pid", "centre", "iss")
     m <- dplyr::inner_join(dfs$iss, dfs$coded)
+
     return (m)
 }
