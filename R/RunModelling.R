@@ -1,0 +1,34 @@
+#' RunModelling
+#'
+#' Run modelling with the pre-specified outcome variable.
+#' @param prepared.sample data.frame The study sample, in its prepared form. No default. 
+#' @param outcome.variable.name Character vector of length 1. Outcome variable for modelling. No default.
+#' @param n.partitions Integer vector of length 1. Number of partitions for the study sample. Defaults to 3.
+#' @param save.statistics Boolean vector of length 1. If TRUE, the results from the bootstrap resampling is saved to disk. Defaults to FALSE.
+#' @param verbose Boolean vector of length 1. If TRUE messages describing the analysis steps is printed to console. Defaults to TRUE 
+#' @export
+RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
+                         save.statistics=FALSE, verbose=TRUE) {
+    if (verbose)
+        message(paste("Running modelling on", outcome.variable.name))
+    ## Partition sample, train, tune cut-points, and predict on a hold-out sample
+    predictions.list <- PartitionTrainAndPredict(study.sample=study.sample,
+                                                 outcome.variable.name=outcome.variable.name,
+                                                 save.to.results=TRUE,
+                                                 n.partitions=n.partitions,
+                                                 boot=FALSE,
+                                                 verbose=verbose)
+    ## Generate point estimates and bootstrap estimates; Save estimates to results
+    ## separately
+    statistics <- BootstrapStatistics(f = ComputeAucAndNri, data = study.sample,
+                                      outcome.variable.name = outcome.variable.name,
+                                      R = n.bootstrap.samples, parallel = "multicore", ncpus = 4,
+                                      save.to.results = FALSE, log = TRUE, boot = TRUE,
+                                      verbose = verbose, return.samples = FALSE,
+                                      n.partitions = n.partitions)
+    if (save.statistics)
+        bengaltiger::SaveToResults(output.object = statistics, object.name = "statistics")
+
+    return (statistics)
+}
+

@@ -1,0 +1,40 @@
+Variable name (vn),Label (l),Abbreviated label (al),Type (t),Values (vs),Value labels (vls),Valid value range (vvr),Format (f),Include in Table 1 (incl),Created (c)
+centre,Centre,,qual,,,,,No,No
+doi,Date of injury,,date,,,,"""%Y-%m-%d""",No,No
+toi,Time of injury,,time,,,,"""%H:%M""",No,No
+doar,Date of arrival to participating centres,,date,,,,"""%Y-%m-%d""",No,No
+toar,Time of arrival to participating centres,,time,,,,"""%H:%M""",No,No
+age,Age in years,,quan,,,18-100,,Yes,No
+sex,Sex,,qual,"0,1","""0 = Female"", ""1 = Male""",,,Yes,No
+moi,Mechanism of injury,,qual,,,,,Yes,No
+tyi,Type of injury,,qual,"0,1,2","""0 = Blunt"", ""1 = Penetrating"", ""2 = Blunt and penetrating""",,,Yes,No
+mot,Mode of transport,,qual,"0,1,2,3","""0 = Ambulance"", ""1 = Police"", ""2 = Private vehicle"", ""3 = Arrived walking""",,,Yes,No
+tran,Transferred from another health facility,Transferred,qual,"0,1","""0 = No"", ""1 = Yes""",,,Yes,No
+sbp,Systolic blood pressure in mmHg,SBP,quan,,,0-300,,Yes,No
+dbp,Diastolic blood pressure in mmHg,DBP,quan,,,0-300,,Yes,No
+spo2,Peripheral capillary oxygen saturation,SpOSUPS 2 SUPE,quan,,,0-100,,Yes,No
+hr,Heart rate,HR,quan,,,0-300,,Yes,No
+rr,Respiratory rate in breaths per minute,RR,quan,,,0-99,,Yes,No
+egcs,Eye component of the Glasgow Coma Scale,EGCS,qual,"1,2,3,4,99","""1 = 1"", ""2 = 2"", ""3 = 3"", ""4 = 4"", ""99 = Non testable""",,,Yes,No
+vgcs,Verbal component of the Glasgow Coma Scale,VGCS,qual,"1,2,3,4,5,99","""1 = 1"", ""2 = 2"", ""3 = 3"", ""4 = 4"", ""5 = 5"", ""99 = Non testable""",,,Yes,No
+mgcs,Motor component of the Glasgow Coma Scale,MGCS,qual,"1,2,3,4,5,6,99","""1 = 1"", ""2 = 2"", ""3 = 3"", ""4 = 4"", ""5 = 5"", ""6 = 6"", ""99 = Non testable""",,,Yes,No
+avpu,"Alert, voice, pain, unresponsive scale",AVPU,qual,"0,1,2,3","""0 = Unresponsive"", ""1 = Pain responsive"", ""2 = Voice responsive"", ""3 = Alert""",,,Yes,No
+tc,Level of priority assigned by clinicians,,qual,"0,1,2,3","""0 = Green"", ""1 = Yellow"", ""2 = Orange"", ""3 = Red""",,,No,No
+hd,,,,,,,,,No
+s24h,,,,,,,,,No
+delay,Time between injury and arrival to participating centre in minutes,Delay,quan,,,,,Yes,Yes
+seqn,Consecutive number assigned based on date and time of arrival,,quan,,,,,No,No
+s30d,All cause 30-day mortality,,qual,"0,1,2","""0 = No"", ""1 = Yes"", ""2 = No""",,,Yes,No
+ic,Informed consent,,qual,"0,1","""0 = No"", ""1 = Yes""",,,No,No
+daicu,Date of admission to the ICU,,date,,,,"""%Y-%m-%d""",No,No
+taicu,Time of admission to the ICU,,time,,,,"""%H:%M""",No,No
+iss,Severity Injury Score,,quan,,,,,No,No
+iss15,Severity Injury Score over 15,,qual,"0,1","""0 = No"", ""1 = Yes""",,,No,Yes
+majors24h,Major surgery within 24 hours to arrivial,,qual,"0,1","""0 = No"", ""1 = Yes""",,,No,Yes
+composite,Composite outcome,,qual,"0,1","""0 = No"", ""1 = Yes""",,,No,Yes
+snomed,Coding of surgery according to SNOMED,,text,,,,,No,No
+nomesco,Coding of surgery accoring to NOMESCO,,text,,,,,No,No
+tos,Time of surgery,,time,,,,"""%H:%M""",No,No
+dos,Date of surgery,,date,,,,"""%Y-%m-%d""",No,No
+icu48h,Admission to the ICU within 48 hours to arrivial,,qual,"0,1","""0 = No"", ""1 = Yes""",,,Yes,Yes
+s,Description of surgical intervention,,text,,,,,No,No

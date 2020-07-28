@@ -1,0 +1,43 @@
+Package: emett
+Title: emett
+Version: 0.0.0.9000
+Authors@R:
+	person("Ludvig", "Wärnberg Gerdin", email = "ludviggerdin@gmail.com", role = c("aut", "cre"))
+	person("Martin", "Gerdin Wärnberg", email = "martingerdin@gmail.com", role = c("aut", "cre"))   
+Description: Ensemble model development for emergency department trauma triage.
+Depends:
+	R (>= 3.4.4),
+	SuperLearner,
+	caret
+Imports:
+	methods,
+	data.table,
+	nricens,
+	dplyr,
+	boot,
+	knitr,
+	tableone,
+	xtable,
+	lattice,
+	RColorBrewer,
+	glmnet,
+	randomForest,
+	xgboost,
+	gam,
+	ggplot2,
+	foreach,
+	doParallel,
+	extrafont,
+	gridExtra,
+	ggpubr,
+	desc,
+	latex2exp,
+	rmarkdown,
+	magrittr,
+	boot,
+	ROCR,
+	bengaltiger
+License: MIT License
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.1.1
