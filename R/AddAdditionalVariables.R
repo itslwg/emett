@@ -3,7 +3,7 @@
 #' Adds time between injury and arrival, ICU, ISS, and the composite outcome as presented in
 #' the thesis published by C Lindgren.
 #' @param study.sample data.frame The study sample data frame. No default.
-#' @param data.dictionary List. Data dictionary entry. No default.
+#' @param data.dictionary Character vector. Data dictionary entry. No default.
 #' @export
 AddAdditionalVariables <- function(study.sample, data.dictionary,
                                    variables.to.drop = c("icu48h",
