@@ -12,20 +12,25 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
     if (verbose)
         message(paste("Running modelling on", outcome.variable.name))
     ## Partition sample, train, tune cut-points, and predict on a hold-out sample
-    predictions.list <- PartitionTrainAndPredict(study.sample=study.sample,
-                                                 outcome.variable.name=outcome.variable.name,
-                                                 save.to.results=TRUE,
-                                                 n.partitions=n.partitions,
-                                                 boot=FALSE,
-                                                 verbose=verbose)
+    predictions.list <- PartitionTrainAndPredict(
+        study.sample=study.sample,
+        outcome.variable.name=outcome.variable.name,
+        save.to.results=TRUE,
+        n.partitions=n.partitions,
+        boot=FALSE,
+        use.fitted.sl=TRUE,
+        verbose=verbose,
+    )
     ## Generate point estimates and bootstrap estimates; Save estimates to results
     ## separately
-    statistics <- BootstrapStatistics(f = ComputeAucAndNri, data = study.sample,
-                                      outcome.variable.name = outcome.variable.name,
-                                      R = n.bootstrap.samples, parallel = "multicore", ncpus = 4,
-                                      save.to.results = FALSE, log = TRUE, boot = TRUE,
-                                      verbose = verbose, return.samples = FALSE,
-                                      n.partitions = n.partitions)
+    statistics <- BootstrapStatistics(
+        f = ComputeAucAndNri, data = study.sample,
+        outcome.variable.name = outcome.variable.name,
+        R = n.bootstrap.samples, parallel = "multicore", ncpus = 4,
+        save.to.results = FALSE, log = TRUE, boot = TRUE,
+        verbose = verbose, return.samples = FALSE,
+        n.partitions = n.partitions, use.fitted.sl=FALSE
+    )
     if (save.statistics)
         bengaltiger::SaveToResults(output.object = statistics, object.name = "statistics")
 
