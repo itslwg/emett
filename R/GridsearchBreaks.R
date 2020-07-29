@@ -47,7 +47,11 @@ GridsearchBreaks <- function(predictions, outcome.vector,
         cl <- parallel::makeCluster(n.cores)
         doParallel::registerDoParallel(cl)
         message("Running gridsearch for optimal cutpoints in parallel on ", n.cores, " cores")
-        parallel.list <- foreach::foreach(breaks.to.search = parallel.breaks) %dopar% lapply(breaks.to.search, EstimateLoss, predictions=predictions, outcome.vector=outcome.vector)
+        parallel.list <- foreach::foreach(breaks.to.search = parallel.breaks) %dopar%
+            lapply(breaks.to.search, EstimateLoss,
+                   predictions=predictions,
+                   outcome.vector=outcome.vector,
+                   measure=loss.function)
         parallel::stopCluster(cl)
         loss.list <- do.call(c, parallel.list)
     } else {
@@ -55,7 +59,8 @@ GridsearchBreaks <- function(predictions, outcome.vector,
             breaks.to.search,
             EstimateLoss,
             predictions=predictions,
-            outcome.vector=outcome.vector
+            outcome.vector=outcome.vector,
+            measure=loss.function
             )   
     }
     loss.data <- data.frame(breaks = do.call(rbind, breaks.to.search), auc = unlist(loss.list))
@@ -73,13 +78,21 @@ GridsearchBreaks <- function(predictions, outcome.vector,
 }
 #' EstimateLoss
 #'
-#' Define function to estimate loss for each set of cut points (breaks)
-#' @param breaks Numeric vector. Breaks to test for the model scroe. No default 
-EstimateLoss <- function(predictions, outcome.vector, breaks) {
+#' Define function to estimate loss for each set of cut points (breaks).
+#' @param predictions Numeric vector. Predicted probabilites. No default.
+#' @param outcome.vector Numeric vector. The outcome of interest. No default.
+#' @param breaks Numeric vector. Breaks to test for the model scroe. No default.
+#' @param measure Character vector of length 1. The name of the loss metric, e.g. auc. For now any performance measure included in ROCR is accepted. No default.
+EstimateLoss <- function(predictions, outcome.vector,
+                         breaks, measure) {
     breaks <- c(-Inf, breaks, Inf)
     groupings <- as.numeric(cut(predictions, breaks = breaks))
-    loss <- EvaluateWithRocr(predictions = groupings, outcome.vector = outcome.vector,
-                             measure = loss.function)
+    loss <- EvaluateWithRocr(
+        predictions = groupings,
+        outcome.vector = outcome.vector,
+        measure = measure
+    )
+
     return(loss)
 }
 

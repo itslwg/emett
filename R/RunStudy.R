@@ -3,8 +3,6 @@
 #' Conducts data fetching and preparation, modelling, predictions, and summarizes results.
 #' @export
 RunStudy <- function(verbose = TRUE) {
-    library(devtools)
-    devtools::load_all()
     print_trace_back <- function() {
         print(rlang::trace_back(bottom = sys.frame(-1)))
     }
@@ -19,9 +17,7 @@ RunStudy <- function(verbose = TRUE) {
                             "taicu", "daicu", "tos", "dos", "nomesco", "snomed", "s", "iss")
     pretty.model.names <- c("SuperLearner", "Random Forest")
     ## Fetch and merge datasets and conduct feature engineering
-    study.sample <- PrepareSample(
-        study.variables=study.variables
-    )
+    study.sample <- PrepareSample(study.variables=study.variables)
     ## Run modelling on the outcomes of interest
     settings <- list(
         s30d=list(
@@ -29,6 +25,12 @@ RunStudy <- function(verbose = TRUE) {
             variables.to.drop=c(
                 "s24h",
                 "composite"
+            )
+        ),
+        composite=list(
+            outcome.label="composite",
+            variables.to.drop=c(
+                "s30d"
             )
         )
     )
@@ -42,7 +44,7 @@ RunStudy <- function(verbose = TRUE) {
         return (RunModelling(study.sample, outcome.variable.name))
     })
     ## Summarize the results
-                                        # SummarizeResults()
+    ## SummarizeResults(statistics)
     print ("Study analysis complete.")
 }
 
