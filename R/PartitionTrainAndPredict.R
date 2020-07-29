@@ -32,10 +32,9 @@ PartitionTrainAndPredict <- function(study.sample,
     fitted.sl <- ""
     sl.object.file <- paste0("SuperLearner_", outcome.variable.name, ".rds")
     ## Fit the model to the training data
-    if (use.fitted.sl) {
+    if (use.fitted.sl==TRUE) {
         if (file.exists(sl.object.file)) {
-            if (verbose)
-                message(paste0("Fetching ", sl.object.file, "..."))
+            message(paste0("Using ", sl.object.file, "..."))
             fitted.sl <- readRDS(sl.object.file)
         } else {
             if (verbose) {
@@ -56,7 +55,7 @@ PartitionTrainAndPredict <- function(study.sample,
                                                                  method = "method.AUC",
                                                                  verbose = FALSE))
     }
-    if (!boot | !use.fitted.sl) {
+    if (!boot && !use.fitted.sl) {
         saveRDS(fitted.sl, file = sl.object.file)
         if (verbose)
             message(paste0("SuperLearner object saved to disk as ", sl.object.file, "..."))
