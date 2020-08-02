@@ -19,14 +19,15 @@ ComputeAucAndNri <- function(data, indices, boot = FALSE,
     if (boot)
         d <- data[indices, ]     ## Allow the boot function to pick indices
     ## Partition the sample, fit the model and predict on out-of-sample
-    predictions.outcome.and.tc <- PartitionTrainAndPredict(study.sample = d, ...)
+    predictions.outcome.and.tc <- PartitionTrainAndPredict(study.sample = d, ...)$predictions.list
     ## Evaluate AUC on the test set for both continuous and binned predictions
-    model.aucs <- with(predictions.outcome.and.tc, sapply(list(con.auc = con.model.test, cut.auc = cut.model.test),
-                                                          EvaluateWithRocr, outcome.vector = y.test))
+    model.aucs <- with(predictions.outcome.and.tc,
+                       sapply(list(con.auc = con.model.test, cut.auc = cut.model.test),
+                              EvaluateWithRocr, outcome.vector = y.test))
     clinicians.auc <- list(clinician.auc = EvaluateWithRocr(predictions = predictions.outcome.and.tc$tc.test,
                                                             outcome.vector = predictions.outcome.and.tc$y.test))
     ## Compare model auc to clinician auc
-    model.clinician.difference <- setNames(model.aucs - clinicians.auc,
+    model.clinician.difference <- setNames(model.aucs - clinicians.auc$clinician.auc,
                                            nm = c("con.clinician.diff.auc", "cut.clinician.diff.auc"))
     ## Check if model performance is worse with binning
     con.cat.auc.difference <- model.aucs["con.auc"] - model.aucs["cut.auc"]

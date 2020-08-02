@@ -1,6 +1,6 @@
 #' CreateMortalityPlot
 #'
-#' Passes plo
+#' Creates a comparison plot of clinicians and models in predicting mortality.
 #' @param predictions.outcome.and.tc List. Predictions, outcome and clinicians triage as list. No default.
 #' @param model.labels Character vector of length 1. Element names for model predictions in predictions.outcome.and.tc. If NULL those model predictions whose list label contain "test" but also "cut", "CUT", or "tc". Defaults to NULL.
 #' @param file.name Character vector of length 1. File name to use for saving the plot. Defaults to NULL, and no plot is saved.

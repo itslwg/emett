@@ -10,9 +10,6 @@
 EvaluateReclassification <- function(current.model.predictions, new.model.predictions, outcome.vector,
                                      reverse = FALSE, return.all = FALSE) {
 
-    current.model.predictions <- results$predictions.list$tc.test
-    new.model.predictions <- results$predictions.list$cut.model.test
-    outcome.vector <- results$predictions.list$y.test
     if (reverse)
         new.model <- forcats::fct_rev(new.model)
     rng <- range(current.model.predictions)
