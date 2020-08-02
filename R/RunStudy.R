@@ -10,7 +10,7 @@ RunStudy <- function(verbose = TRUE) {
     if (verbose)
         message("Preparing the sample...")
     ## Set parameters that are default in make.study
-    n.bootstrap.samples <- 2
+    n.bootstrap.samples <- 1
     n.partitions <- 3
     study.variables <- c("age", "moi", "sex", "mot", "tran", "s30d", "egcs", "mgcs", "vgcs", "avpu", "hr",
                             "sbp", "dbp", "spo2", "rr", "tc", "ic", "doar", "toar", "doi", "toi", "s24h", "hd",
@@ -26,25 +26,28 @@ RunStudy <- function(verbose = TRUE) {
                 "s24h",
                 "composite"
             )
-        ),
+        )
         composite=list(
             outcome.label="composite",
             variables.to.drop=c(
-                "s30d"
+                "s30d",
+                "s24h"
             )
         )
     )
-    s <- settings$s30d
     statistics <- lapply(settings, function(s) {
         variables.to.drop <- s$variables.to.drop
         outcome.variable.name <- s$outcome.label
         study.sample=study.sample[
           , !grepl(paste0(variables.to.drop, collapse="|"), names(study.sample))
         ]
-        return (RunModelling(study.sample, outcome.variable.name))
+        return (
+            RunModelling(study.sample, outcome.variable.name,
+                         n.bootstrap.samples=n.bootstrap.samples)
+        )
     })
     ## Summarize the results
     ## SummarizeResults(statistics)
-    print ("Study analysis complete.")
+    message("Study analysis complete.")
 }
 
