@@ -75,25 +75,24 @@ PartitionTrainAndPredict <- function(study.sample,
     ## the appropriate set
     optimal.breaks <- ""
     if (use.fitted.sl) {
-        results.breaks <- readRDS("results.Rds")$optimal.breaks
+        results.breaks <- readRDS("results.Rds")[[paste0(outcome.variable.name, ".optimal.breaks")]]
         if (is.null(results.breaks)) {
             if (verbose)
                 message(paste("Finding optimal breaks for continuous probabilities on the", label, "set..."))
             optimal.breaks <- GridsearchBreaks(predictions = predictions[grepl(label, con.list.labels)][[1]], 
                                                outcome.vector = partitions[[label]]$y)
             suppressMessages({
-                bengaltiger::SaveToResults(optimal.breaks, "optimal.breaks")
+                bengaltiger::SaveToResults(optimal.breaks, paste0(outcome.variable.name, ".optimal.breaks"))
             })
         } else {
             message("Parameter use.fitted.sl is set to True, and results file contain optimal.breaks element. Using those as breaks for binning continous predictions...")
             optimal.breaks <- results.breaks
         }  
-    }
-    if (boot.sample) {
+    } else if (!use.fitted.sl || boot.sample) {
         if (verbose)
             message(paste("Finding optimal breaks for continuous probabilities on the", label, "set..."))
         optimal.breaks <- GridsearchBreaks(predictions = predictions[grepl(label, con.list.labels)][[1]], 
-                                           outcome.vector = partitions[[label]]$y)   
+                                           outcome.vector = partitions[[label]]$y)
     }
     full.training.list <- list(y = unlist(lapply(train.validation, "[[", "y")),
                                x = do.call(rbind, lapply(train.validation, "[[", "x")))
@@ -134,7 +133,8 @@ PartitionTrainAndPredict <- function(study.sample,
     if (save.sample.predictions) {
         for (i in seq_along(return.object))
             suppressMessages({
-                bengaltiger::SaveToResults(return.object[[i]], names(return.object)[i])  
+                bengaltiger::SaveToResults(return.object[[i]],
+                                           paste0(outcome.variable.name, ".", names(return.object)[i]))
             })
     }
     return (return.object)
