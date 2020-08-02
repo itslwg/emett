@@ -3,13 +3,13 @@
 This is the code repository of the "Ensemble Model for Emergency
 department Trauma Triage (EMETT)" study. The bulk of the code is in
 [./R](./R), but testing can and perhaps should, be performed from
-[[playground.r]], located here in the top directory. The main function
+[./playground.R](playground.R), located here in the top directory. The main function
 is [./R/make.study.r](make.study.r), which calls, either directly or
-indirectly, the functions in remaining .r files.
+indirectly, the functions in remaining .R files.
 
-** To test and review code
-1. Start with [./playground.R](playground.R).
-2. Run the first lines to source all functions in [./R](./R).
-3. The remaining content of playground.r is more or less a copy of make.study.r
+#### To run the code
+Two options:
+1. Run the study analysis by running `RunStudy.R` in the [./R](./R) folder.
+2. Run the study analysis by running from `playground.R`.
 
 
