@@ -8,7 +8,7 @@ RunStudy <- function(verbose = TRUE) {
     }
     options(error = print_trace_back)
     if (verbose)
-        message("Preparing the sample...")
+        message("\n~~~~~~~~~~~~~~~~~~~~~~~\nPreparing the sample...\n~~~~~~~~~~~~~~~~~~~~~~~\n")
     ## Set parameters that are default in make.study
     n.bootstrap.samples <- 1
     n.partitions <- 3
@@ -26,7 +26,7 @@ RunStudy <- function(verbose = TRUE) {
                 "s24h",
                 "composite"
             )
-        )
+        ),
         composite=list(
             outcome.label="composite",
             variables.to.drop=c(
