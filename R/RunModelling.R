@@ -12,7 +12,13 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
                          n.bootstrap.samples, save.statistics=FALSE,
                          verbose=TRUE) {
     if (verbose)
-        message(paste("Running modelling on", outcome.variable.name))
+        message(paste0(
+            "\n~~~~~~~~~~~~~~~~~~~~~", paste0(rep("~", nchar(outcome.variable.name)), collapse=""), "\n",
+            "Running modelling on ",
+            outcome.variable.name,
+            "\n~~~~~~~~~~~~~~~~~~~~~", paste0(rep("~", nchar(outcome.variable.name)), collapse=""), "\n"
+        )
+        )
     ## Partition sample, train, tune cut-points, and predict on a hold-out sample
     predictions.list <- PartitionTrainAndPredict(
         study.sample=study.sample,
@@ -20,7 +26,7 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
         save.sample.predictions=TRUE,
         n.partitions=n.partitions,
         boot.sample=FALSE,
-        use.fitted.sl=TRUE,
+        use.fitted.sl=FALSE,
         verbose=verbose,
     )
     ## Generate point estimates and bootstrap estimates; Save estimates to results
