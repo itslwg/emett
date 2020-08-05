@@ -18,7 +18,7 @@ PartitionTrainAndPredict <- function(study.sample,
                                      save.sample.predictions = TRUE,
                                      boot.sample = FALSE,
                                      verbose = FALSE,
-                                     return.samples = TRUE,
+                                     save.samples = TRUE,
                                      use.fitted.sl = FALSE){
     ## Error handling
     if (!is.data.frame(study.sample))
@@ -123,19 +123,19 @@ PartitionTrainAndPredict <- function(study.sample,
                            function (partition.list) as.numeric(partition.list[[label]]))
         return (new.list)
     }
-    return.object <- list(predictions.list = c(predictions, binned.predictions,
-                                               NewLabelsAndNumeric("y"),
-                                               NewLabelsAndNumeric("tc")))
-    if (return.samples) {
+    return.object <- list()
+    return.object$predictions.list <- c(predictions, binned.predictions,
+                                        NewLabelsAndNumeric("y"),
+                                        NewLabelsAndNumeric("tc"))
+    if (save.samples) {
         return.object$samples <- lapply(partitions, "[[", "x")
     }
     ## Save the predictions, outcome and clinicians tc in each partition to the results list
     if (save.sample.predictions) {
-        for (i in seq_along(return.object))
-            suppressMessages({
-                bengaltiger::SaveToResults(return.object[[i]],
-                                           paste0(outcome.variable.name, ".", names(return.object)[i]))
-            })
+        suppressMessages({
+            bengaltiger::SaveToResults(return.object, paste0(outcome.variable.name, ".results"))
+        })
     }
+
     return (return.object)
 }

@@ -10,7 +10,7 @@
 #' @export
 RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
                          n.bootstrap.samples, save.statistics=FALSE,
-                         verbose=TRUE) {
+                         save.samples=TRUE, verbose=TRUE) {
     if (verbose)
         message(paste0(
             "\n~~~~~~~~~~~~~~~~~~~~~", paste0(rep("~", nchar(outcome.variable.name)), collapse=""), "\n",
@@ -23,11 +23,12 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
     predictions.list <- PartitionTrainAndPredict(
         study.sample=study.sample,
         outcome.variable.name=outcome.variable.name,
+        save.samples=save.samples,
         save.sample.predictions=TRUE,
         n.partitions=n.partitions,
         boot.sample=FALSE,
-        use.fitted.sl=FALSE,
-        verbose=verbose,
+        use.fitted.sl=TRUE,
+        verbose=verbose
     )
     ## Generate point estimates and bootstrap estimates; Save estimates to results
     ## separately
@@ -41,14 +42,18 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
         save.sample.predictions=FALSE,
         log=TRUE,
         boot.sample=TRUE,
-        use.fitted.sl=FALSE,
+        use.fitted.sl=TRUE,
         verbose=verbose,
-        return.samples=FALSE,
-        n.partitions=n.partitions,
+        save.samples=save.samples,
+        n.partitions=n.partitions
     )
     if (save.statistics)
         bengaltiger::SaveToResults(output.object = statistics, object.name = "statistics")
 
-    return (statistics)
+    return (c(
+        predictions.list,
+        list(statistics=statistics)
+    ))
+
 }
 
