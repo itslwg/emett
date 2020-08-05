@@ -1,10 +1,10 @@
-#' PlotMortality
+#' PlotComparison
 #'
 #' Creates a stacked bar plot representing under-triage and over-triage in each triage category.
-#' @param plot.data Data frame. The data for the mortality plot created with CreateMortalityPlot. No default.
+#' @param plot.data Data frame. The data for the mortality plot created with CreateTriageComparisonPlot. No default.
 #' @param levels Character vector. Levels for the bars. Defaults to c("Green", "Yellow", "Orange", "Red")
 #' @export
-PlotMortality <- function(plot.data, levels = c("Green", "Yellow", "Orange", "Red")) {
+PlotTriageComparison <- function(plot.data, levels = c("Green", "Yellow", "Orange", "Red")) {
     if (!all(sapply(levels, is.character)))
         stop("levels should be a character vector.")
     colors <- RColorBrewer::brewer.pal(3, "Set2")
