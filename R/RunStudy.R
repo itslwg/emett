@@ -20,14 +20,14 @@ RunStudy <- function(verbose = TRUE) {
     study.sample <- PrepareSample(study.variables=study.variables)
     ## Run modelling on the outcomes of interest
     settings <- list(
-        s30d=list(
+        s30d.results=list(
             outcome.label="s30d",
             variables.to.drop=c(
                 "s24h",
                 "composite"
             )
         ),
-        composite=list(
+        composite.results=list(
             outcome.label="composite",
             variables.to.drop=c(
                 "s30d",
@@ -35,7 +35,7 @@ RunStudy <- function(verbose = TRUE) {
             )
         )
     )
-    statistics <- lapply(settings, function(s) {
+    modelling.list <- lapply(settings, function(s) {
         variables.to.drop <- s$variables.to.drop
         outcome.variable.name <- s$outcome.label
         study.sample=study.sample[
@@ -43,7 +43,8 @@ RunStudy <- function(verbose = TRUE) {
         ]
         return (
             RunModelling(study.sample, outcome.variable.name,
-                         n.bootstrap.samples=n.bootstrap.samples)
+                         n.bootstrap.samples=n.bootstrap.samples,
+                         save.samples = FALSE)
         )
     })
     ## Summarize the results

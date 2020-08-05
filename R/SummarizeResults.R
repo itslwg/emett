@@ -1,12 +1,13 @@
 #' SummarizeResults
 #'
 #' Plots the performance metrics, creates tables, and compiles manuscript.
-#' @param statistics List. Statistics list from the RunModelling call in RunStudy. No default.
+#' @param modelling.list List. Output from the emett::RunModelling function. No default
 #' @export
-SummarizeResults<- function(statistics) {
+SummarizeResults<- function(modelling.list) {
     ## Error handling
     ## Create ROC-plots
-    CreateRocPlot(results$predictions.list, device = "pdf")
+    for (nm in names(modelling.list))
+        CreateRocPlot(modelling.list[[nm]]$predictions.list, device = "pdf")
     ## Create Mortality plot
     CreateMortalityPlot(results$predictions.list, device = "pdf")
     ## Create table of estimates
