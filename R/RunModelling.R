@@ -27,9 +27,17 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
         save.sample.predictions=TRUE,
         n.partitions=n.partitions,
         boot.sample=FALSE,
-        use.fitted.sl=TRUE,
+        use.fitted.sl=FALSE,
         verbose=verbose
     )
+    if (verbose)
+        message(paste0(
+            "\n~~~~~~~~~~~~~~~~~~~~~", paste0(rep("~", nchar(outcome.variable.name)), collapse=""), "\n",
+            "Running bootstrap analysis on ",
+            outcome.variable.name,
+            "\n~~~~~~~~~~~~~~~~~~~~~", paste0(rep("~", nchar(outcome.variable.name)), collapse=""), "\n"
+        )
+        )
     ## Generate point estimates and bootstrap estimates; Save estimates to results
     ## separately
     statistics <- BootstrapStatistics(
@@ -42,7 +50,7 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
         save.sample.predictions=FALSE,
         log=TRUE,
         boot.sample=TRUE,
-        use.fitted.sl=TRUE,
+        use.fitted.sl=FALSE,
         verbose=verbose,
         save.samples=save.samples,
         n.partitions=n.partitions

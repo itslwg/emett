@@ -3,23 +3,25 @@
 #' Fit the model to the training data, predict on the test data, and evaluate the predictions.
 #' @param data Data frame. The study data. No default.
 #' @param indices Allows the boot function to pick indices.
-#' @param boot Logical. If TRUE the sample is treated as a bootstrap sample. Then, indices are used by the boot package to resample the sample, and progress is logged as a bootstrap. Defaults to FALSE
+#' @param boot.sample Logical. If TRUE the sample is treated as a bootstrap sample. Then, indices are used by the boot package to resample the sample, and progress is logged as a bootstrap. Defaults to FALSE
 #' @param log Logical. If TRUE progress is logged to a logfile. Defaults to TRUE
 #' @param clean.start Logical. If TRUE logfile is removed and new information is logged. If FALSE information is appended to the logfile. Defaults to FALSE.
 #' @export
-ComputeAucAndNri <- function(data, indices, boot = FALSE,
+ComputeAucAndNri <- function(data, indices, boot.sample = FALSE,
                              log = TRUE, clean.start = TRUE,
                              ...) {
     ## Error handling
     if (!is.data.frame(data))
         stop ("data must be of type data frame")
-    if (!bengaltiger::IsLength1(boot) | !is.logical(boot))
+    if (!bengaltiger::IsLength1(boot.sample) | !is.logical(boot.sample))
         stop ("boot must be of a logical vector of length 1")
     d <- data
-    if (boot)
+    if (boot.sample)
         d <- data[indices, ]     ## Allow the boot function to pick indices
     ## Partition the sample, fit the model and predict on out-of-sample
-    predictions.outcome.and.tc <- PartitionTrainAndPredict(study.sample = d, ...)$predictions.list
+    predictions.outcome.and.tc <- PartitionTrainAndPredict(study.sample = d,
+                                                           boot.sample=boot.sample,
+                                                           ...)$predictions.list
     ## Evaluate AUC on the test set for both continuous and binned predictions
     model.aucs <- with(predictions.outcome.and.tc,
                        sapply(list(con.auc = con.model.test, cut.auc = cut.model.test),
@@ -34,7 +36,7 @@ ComputeAucAndNri <- function(data, indices, boot = FALSE,
     con.cat.auc.difference <- setNames(c(con.cat.auc.difference, -con.cat.auc.difference),
                                        nm = c("con.cat.diff.auc", "cat.con.diff.auc"))
     ## Compile aucs to one vector
-    auc.vector <- c(model.aucs, clinicians.auc, model.clinician.difference, con.cat.auc.difference)
+    auc.vector <- c(model.aucs, clinicians.auc$clinician.auc, model.clinician.difference, con.cat.auc.difference)
     ## Evaluate nri on the test set
     nri <- with(predictions.outcome.and.tc, EvaluateReclassification(current.model.predictions = tc.test,
                                                                      new.model.predictions = cut.model.test,
@@ -45,7 +47,7 @@ ComputeAucAndNri <- function(data, indices, boot = FALSE,
     timestamp <- Sys.time()
     if (log) {
         analysis_name <- "Main"
-        if (boot)
+        if (boot.sample)
             analysis_name <- "Bootstrap"
         logline <- paste0(analysis_name, " analysis completed on ", timestamp)
         append <- ifelse(clean.start, FALSE, TRUE)

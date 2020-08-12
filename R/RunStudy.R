@@ -42,9 +42,10 @@ RunStudy <- function(verbose = TRUE) {
           , !grepl(paste0(variables.to.drop, collapse="|"), names(study.sample))
         ]
         return (
-            RunModelling(study.sample, outcome.variable.name,
-                         n.bootstrap.samples=n.bootstrap.samples,
-                         save.samples = FALSE)
+            c(RunModelling(study.sample, outcome.variable.name,
+                           n.bootstrap.samples=n.bootstrap.samples,
+                           save.samples = FALSE),
+              list(test.sample=PartitionSample(study.sample, outcome.variable.name, n.partitions)$test$x))
         )
     })
     ## Summarize the results

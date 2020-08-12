@@ -11,7 +11,7 @@
 #' @param n.cores Numeric vector of length 1. The number of cores to use for parallel computing. Defaults to NULL.
 #' @param save.plot Logical vector of length 1. If TRUE a wireframe plot is saved to disk. Defaults to FALSE.
 #' @param verbose Logical vector of length 1. If TRUE then information is printed as the gridsearch runs. Defaults to FALSE. Currently ignored.
-#' @param maximise Logical vector of length 1. If TRUE, grid search maximizes performance metric. Defaults to TRUE.
+#' @param maximise Logical vector of length 1. If TRUE, grid search maximizes performance metric. Else the gridsearch minimizes the performance metric. Defaults to TRUE.
 #' @importFrom foreach %dopar%
 #' @export
 GridsearchBreaks <- function(predictions, outcome.vector,
@@ -67,10 +67,12 @@ GridsearchBreaks <- function(predictions, outcome.vector,
     ## Make and save plot
     if (save.plot)
         create.and.save.gridsearch.plot(loss.data)
-    ## Get function of max or min
-    optimise.order <- order(-loss.data$auc)
-    if (!maximise)
-        optimise.order <- order(loss.data$auc)
+    ## Find max or min of auc
+    decreasing <- ifelse(maximise, TRUE, FALSE)
+    optimise.order <- order(
+        loss.data$auc,
+        decreasing=decreasing
+    )
     ## Get optimal cutoffs
     optimal.cutpoints <- unlist(loss.data[optimise.order, 1:n.breaks][1, ])
 
