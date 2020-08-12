@@ -21,7 +21,7 @@ CreateTriageComparisonPlot <- function(predictions.outcome.and.tc, file.name = N
     ## Error handling
     if (!is.list(predictions.outcome.and.tc))
         stop("predictions.outcome.and.tc must be list")
-    if (length(outcome.labels) != length(unique(predictions.outcome.and.tc[[outcome.label]])))
+    if (length(pretty.labels) != length(unique(predictions.outcome.and.tc[[outcome.label]])))
         stop("Number of elements in argument pretty.labels must match the number of categories in the outcome")
     nms <- names(predictions.outcome.and.tc)
     if (is.null(model.labels))
@@ -36,8 +36,10 @@ CreateTriageComparisonPlot <- function(predictions.outcome.and.tc, file.name = N
         perc.event.y <- n.non.event + n.event
         perc.event <- paste0(round(prop.table(outcome.to.category, margin = 1)[, 2] * 100), "%")
         data <- data.frame(levels = rep(rownames(outcome.to.category), 2),
-                           y = c(n.non.event, n.event), strata = rep(pretty.labels, each = 4),
-                           perc.event.y = c(perc.event.y, rep(NA, 4)), perc.event = c(perc.event, rep(NA, 4)))
+                           y = c(n.non.event, n.event),
+                           strata = rep(pretty.labels, each = 4),
+                           perc.event.y = c(perc.event.y, rep(NA, 4)),
+                           perc.event = c(perc.event, rep(NA, 4)))
         data <- data.frame(data, x = rep(letters[1:4], 2), pretty.name = rep(pretty.name, nrow(data)))
         rownames(data) <- NULL
         return(data)

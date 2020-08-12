@@ -11,9 +11,9 @@ PlotTriageComparison <- function(plot.data, levels = c("Green", "Yellow", "Orang
     # Create and return plot object
     plot.object <- ggplot2::ggplot(data = plot.data) +
         ggplot2::geom_col(ggplot2::aes(y = y, x = x, fill = strata), position = "stack") +
-        ggplot2::geom_text(ggplot2::aes(y = perc.died.y + 1,
+        ggplot2::geom_text(ggplot2::aes(y = perc.event.y + 1,
                                         x = x,
-                                        label = perc.died), size = 2, vjust = "bottom") +
+                                        label = perc.event), size = 2, vjust = "bottom") +
         ggplot2::xlab("Priority level") +
         ggplot2::ylab("Number of patients") +
         ggplot2::scale_x_discrete(labels = setNames(levels, letters[1:length(levels)])) + 
