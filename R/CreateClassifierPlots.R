@@ -10,11 +10,8 @@
 CreateClassifierPlots <- function(sample, outcomes,
                                   superlearner.object.path = "./SuperLearner_s30d.rds",
                                   pretty.model.nms = c("SuperLearner",
-                                                       "GLMnet",
-                                                       "GLM",
                                                        "Random Forest",
-                                                       "XGboost",
-                                                       "GAM"),
+                                                       "Neural Net"),
                                   file.name = "roc.prec.rec", device = "pdf",
                                   ...) {
     ## Load model object
