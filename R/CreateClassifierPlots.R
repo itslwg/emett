@@ -1,37 +1,42 @@
-#' Generate Precision/Recall and ROC-curves for classifiers
+#' CreateClassifierPlots
 #'
-#' Plots receiver operating characteristics and precision/recall curves of all learners included in SL.
-#' @param sample data.frame Sample on which to base the predictions. No default.
-#' @param outcomes Numeric vector. Outcome from the sample. No default.
-#' @param superlearner.object.path The path to the SuperLearner object as generated from the SuperLearner::SuperLearner() method. Default: "./SuperLearner_s30d.rds"
-#' @param pretty.model.nms Character vector. Pretty model names for plot. Defaults to c("SuperLearner", "GLMnet", "GLM", "Random Forest", "XGboost", "GAM")
+#' Plots the ROC-curve for the learners included in the SuperLearner ensemble. If plotting multiple outcomes, use labelled lists using the data.frame outcome labels as the list labels suffixed with ".results". So, if using e.g. s30d and composite as outcomes, label the list with "s30d.results" and "composite.results".
+#' @param samples data.frame or list of data.frames. The sample(s) upon which the predictions should be made. No default.
+#' @param outcomes Numeric vector or list of numeric vectors. Outcome from the sample(s). No default.
+#' @param superlearner.object.paths Character vector of length 1 or character vector. The path to the SuperLearner object(s) as generated from the SuperLearner::SuperLearner() method. Defaults to list(s30d.results="./SuperLearner_s30d.rds", composite.results="./SuperLearner_composite.rds")
+#' @param pretty.model.nms Character vector. Pretty model names for plot. c("SuperLearner", "Random Forest", "Neural Net")
+#' @param file.name Character vector of length 1. File name of the plot. Defaults to "learners.roc"
+#' @param device Character vector of length 1. Device to use in SavePlot. Defaults to "pdf"
+#' @param plot.labels Character vector of length 1 or character vector. Labels for the learners plots. E.g. if two outcomes, the labels for the first outcome will be A and for the second the plot label will be B. Defaults to list(s30="A", composite="B") 
 #' @param ... Additional arguments for SavePlot. 
 #' @export
-CreateClassifierPlots <- function(sample, outcomes,
-                                  superlearner.object.path = "./SuperLearner_s30d.rds",
+CreateClassifierPlots <- function(samples, outcomes,
+                                  superlearner.object.paths = list(
+                                      s30d.results="./SuperLearner_s30d.rds",
+                                      composite.results="./SuperLearner_composite.rds"
+                                  ),
                                   pretty.model.nms = c("SuperLearner",
                                                        "Random Forest",
                                                        "Neural Net"),
-                                  file.name = "roc.prec.rec", device = "pdf",
+                                  file.name = "learners.roc", device = "pdf",
+                                  plot.labels = list(s30d.results="A", composite.results="B"),
                                   ...) {
-    ## Load model object
-    superlearner.object <- readRDS(superlearner.object.path)
-    ## Get predictions of SL learners from training set
-    model.data <- data.frame(do.call(cbind, predict(superlearner.object, newdata = sample)))
-    ## Initiate list to populate with dataframe columns and, then, fill
-    predictions.list <- lapply(setNames(model.data, nm = pretty.model.nms), function(x) x)
-    ## Get true positive and false positive rates
-    measures <- list(measure = "tpr", x.measure = "fpr")
-    tpr.fpr <- GetPerformanceList(predictions.list, measures, outcomes)
-    roc.plot.data <- CreatePlotData(tpr.fpr, "A")
-    ## Get recall and precision
-    prec.rec <- GetPerformanceList(predictions.list, list(measure = "prec", x.measure = "rec"), outcomes)
-    prec.plot.data <- CreatePlotData(prec.rec, "B")
-    ## Create plots
-    roc.plot <- PlotRoc(roc.plot.data)
-    prec.rec.plot <- PlotRoc(prec.plot.data)
+    plot.list <- lapply(names(samples), function(nm) {
+        ## Load model object
+        superlearner.object <- readRDS(superlearner.object.paths[[nm]])
+        ## Get predictions of SL learners from training set
+        model.data <- data.frame(do.call(cbind, predict(superlearner.object, newdata = samples[[nm]])))
+        ## Initiate list to populate with dataframe columns and, then, fill
+        predictions.list <- lapply(setNames(model.data, nm = pretty.model.nms), function(x) x)
+        ## Get true positive and false positive rates
+        measures <- list(measure = "tpr", x.measure = "fpr")
+        tpr.fpr <- GetPerformanceList(predictions.list, measures, outcomes[[nm]])
+        roc.plot.data <- CreatePlotData(tpr.fpr, plot.labels[[nm]])
+        ## Create plots
+        roc.plot <- PlotRoc(roc.plot.data)
+    })
     ## Arrange plot grid
-    combined.plot <- ggpubr::ggarrange(roc.plot, prec.rec.plot,
+    combined.plot <- ggpubr::ggarrange(plotlist=plot.list,
                                        ncol = 2,
                                        common.legend = TRUE,
                                        legend = "bottom",
