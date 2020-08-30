@@ -10,7 +10,8 @@ RunStudy <- function(verbose = TRUE) {
     if (verbose)
         message("\n~~~~~~~~~~~~~~~~~~~~~~~\nPreparing the sample...\n~~~~~~~~~~~~~~~~~~~~~~~\n")
     ## Set parameters that are default in make.study
-    n.bootstrap.samples <- 1
+    # file.remove("results.Rds")
+    n.bootstrap.samples <- 2
     n.partitions <- 3
     study.variables <- c("age", "moi", "sex", "mot", "tran", "s30d", "egcs", "mgcs", "vgcs", "avpu", "hr",
                             "sbp", "dbp", "spo2", "rr", "tc", "ic", "doar", "toar", "doi", "toi", "s24h", "hd",
@@ -31,16 +32,23 @@ RunStudy <- function(verbose = TRUE) {
             outcome.label="composite",
             variables.to.drop=c(
                 "s30d",
-                "s24h"
+                "s24h",
+                "composite_missing"
             )
         )
     )
+    test.partitions <- list()
     modelling.list <- lapply(settings, function(s) {
         variables.to.drop <- s$variables.to.drop
         outcome.variable.name <- s$outcome.label
-        study.sample=study.sample[
+        study.sample <- study.sample[
           , !grepl(paste0(variables.to.drop, collapse="|"), names(study.sample))
         ]
+        test.partitions[[paste0("test.partition.", outcome.variable.name)]] <<- PartitionSample(
+            study.sample,
+            outcome.variable.name,
+            n.partitions=3
+        )$test$x
         return (
             c(RunModelling(study.sample, outcome.variable.name,
                            n.bootstrap.samples=n.bootstrap.samples,
@@ -48,6 +56,7 @@ RunStudy <- function(verbose = TRUE) {
               list(test.sample=PartitionSample(study.sample, outcome.variable.name, n.partitions)$test$x))
         )
     })
+    saveRDS(test.partitions, "./test.partitions.Rds")
     ## Summarize the results
     ## SummarizeResults(statistics)
     message("Study analysis complete.")
