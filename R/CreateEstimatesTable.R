@@ -41,7 +41,8 @@ CreateEstimatesTable <- function(estimates.with.ci, table.name = "estimates.tabl
     tbl <- MakeTable(df, return.table = return.table,
                      table.name = table.name,
                      save.to.disk = save.to.disk,
-                     file.format = file.format, ...)
+                     file.format = file.format,
+                     ...)
     if (return.table)
         return (df)
 }

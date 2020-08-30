@@ -26,8 +26,7 @@ CreateCoefficientsTable <- function(sample, outcomes, table.name = "coeff.risk",
                                                         "Cross validated AUROCC",
                                                         "Weight",
                                                         "AUROCC in test sample"),
-                                    pretty.model.nms = c("SuperLearner", "GLMnet", "GLM",
-                                                         "Random Forest", "XGboost", "GAM"),
+                                    pretty.model.nms = c("SuperLearner", "Random Forest", "Neural Net"),
                                     footnote = "The risk is equal to 1 - cross validated AUROCC.
                                                 The weight is the weight given to each learner in
                                                 the final SuperLearner. A weight of 0 means that the

@@ -7,7 +7,7 @@
 #' @param train.size Numeric vector of length 1. The proportion of the sample that goes into training set. Defaults to 0.6
 #' @export
 PartitionSample <- function(study.sample, outcome.variable.name = "s30d",
-                            n.partitions = 2, train.size = 0.6) {
+                            n.partitions = 2, train.size = 0.5) {
     ## Error handling
     if (!is.character(outcome.variable.name) | !bengaltiger::IsLength1(outcome.variable.name))
         stop("outcome.variable.name has to be a character vector of length 1")

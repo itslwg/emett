@@ -9,7 +9,7 @@
 #' @param verbose Boolean vector of length 1. If TRUE messages describing the analysis steps is printed to console. Defaults to TRUE 
 #' @export
 RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
-                         n.bootstrap.samples, save.statistics=FALSE,
+                         n.bootstrap.samples, save.statistics=TRUE,
                          save.samples=TRUE, verbose=TRUE) {
     if (verbose)
         message(paste0(
@@ -53,10 +53,12 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
         use.fitted.sl=FALSE,
         verbose=verbose,
         save.samples=save.samples,
-        n.partitions=n.partitions
+        n.partitions=n.partitions,
+        clean.start=FALSE
     )
     if (save.statistics)
-        bengaltiger::SaveToResults(output.object = statistics, object.name = "statistics")
+        bengaltiger::SaveToResults(output.object = statistics,
+                                   object.name = paste0(outcome.variable.name, ".statistics"))
 
     return (c(
         predictions.list,
