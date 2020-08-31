@@ -4,7 +4,7 @@ Version: 0.0.0.9000
 Authors@R:
 	person("Ludvig", "Wärnberg Gerdin", email = "ludviggerdin@gmail.com", role = c("aut", "cre"))
 	person("Martin", "Gerdin Wärnberg", email = "martingerdin@gmail.com", role = c("aut", "cre"))   
-Description: Ensemble model development for emergency department trauma triage.
+Description: Ensemble Model for Emergency department Trauma Triage (EMETT)
 Depends:
 	R (>= 3.4.4),
 	SuperLearner,
@@ -36,7 +36,8 @@ Imports:
 	magrittr,
 	boot,
 	ROCR,
-	bengaltiger
+	bengaltiger,
+	kableExtra
 License: MIT License
 Encoding: UTF-8
 LazyData: true
