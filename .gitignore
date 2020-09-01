@@ -40,5 +40,6 @@ vignettes/*.pdf
 PROJECT.org
 /test.Rmd
 
-# Predictions
+# Predictions and samples
 predictions/*
+samples.Rds
