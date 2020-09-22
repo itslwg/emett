@@ -7,9 +7,9 @@
 #' @param log Logical. If TRUE progress is logged to a logfile. Defaults to TRUE
 #' @param clean.start Logical. If TRUE logfile is removed and new information is logged. If FALSE information is appended to the logfile. Defaults to FALSE.
 #' @export
-ComputeAucAndNri <- function(data, indices, boot.sample = FALSE,
-                             log = TRUE, clean.start = TRUE,
-                             ...) {
+ComputeAucAndNri <- function(data, indices, n.partitions = 3,
+                             boot.sample = FALSE, log = TRUE,
+                             clean.start = TRUE, ...) {
     ## Error handling
     if (!is.data.frame(data))
         stop ("data must be of type data frame")
@@ -22,28 +22,58 @@ ComputeAucAndNri <- function(data, indices, boot.sample = FALSE,
     predictions.outcome.and.tc <- PartitionTrainAndPredict(study.sample = d,
                                                            boot.sample=boot.sample,
                                                            ...)$predictions.list
+    predictions.outcome.and.tc <- results$s30d.results$predictions.list
     ## Evaluate AUC on the test set for both continuous and binned predictions
-    model.aucs <- with(predictions.outcome.and.tc,
-                       sapply(list(con.auc = con.model.test, cut.auc = cut.model.test),
-                              EvaluateWithRocr, outcome.vector = y.test))
-    clinicians.auc <- list(clinician.auc = EvaluateWithRocr(predictions = predictions.outcome.and.tc$tc.test,
-                                                            outcome.vector = predictions.outcome.and.tc$y.test))
+    l <- predictions.outcome.and.tc[grep("model", names(predictions.outcome.and.tc), value=TRUE)]
+    model.aucs <- sapply(setNames(nm=names(l)), function(nm) {
+        partition <- sub(".*\\.", "", nm)
+        o <- predictions.outcome.and.tc[[paste0("y.", partition)]]
+        e <- EvaluateWithRocr(
+            predictions=l[[nm]],
+            outcome.vector=o
+        )
+        return (e)
+    })
+    c <- predictions.outcome.and.tc[grep("tc", names(predictions.outcome.and.tc), value=TRUE)]
+    clinician.aucs <- sapply(setNames(nm=names(c)), function(nm) {
+        partition <- sub(".*\\.", "", nm)
+        o <- predictions.outcome.and.tc[[paste0("y.", partition)]]
+        e <- EvaluateWithRocr(
+            predictions=c[[nm]],
+            outcome.vector=o
+        )
+        return (e)
+    })
     ## Compare model auc to clinician auc
     model.clinician.difference <- setNames(model.aucs - clinicians.auc$clinician.auc,
-                                           nm = c("con.clinician.diff.auc", "cut.clinician.diff.auc"))
+                                           nm = paste0(names(model.aucs), ".diff"))
     ## Check if model performance is worse with binning
-    con.cat.auc.difference <- model.aucs["con.auc"] - model.aucs["cut.auc"]
-    con.cat.auc.difference <- setNames(c(con.cat.auc.difference, -con.cat.auc.difference),
-                                       nm = c("con.cat.diff.auc", "cat.con.diff.auc"))
+    partition.labels <- unique(sub(".*\\.", "", names(model.aucs)))
+    con.cat.auc.difference <- unlist(lapply(partition.labels, function(l) {
+        b <- grep(l, names(model.aucs))
+        cut.con.diff = diff(model.aucs[b])
+        diffs <- c(cut.con.diff, -cut.con.diff)
+        names(diffs) <- paste0(c("cut.con.diff.", "con.cut.diff."), l)
+        
+        return (diffs)
+    }))
     ## Compile aucs to one vector
-    auc.vector <- c(model.aucs, clinicians.auc$clinician.auc, model.clinician.difference, con.cat.auc.difference)
+    auc.vector <- c(model.aucs, clinician.aucs, model.clinician.difference, con.cat.auc.difference)
     ## Evaluate nri on the test set
-    nri <- with(predictions.outcome.and.tc, EvaluateReclassification(current.model.predictions = tc.test,
-                                                                     new.model.predictions = cut.model.test,
-                                                                     outcome.vector = y.test))
-    nri <- unlist(list(nri.plus = nri["NRI+", ], nri.minus = nri["NRI-", ]))
+    nri <- unlist(lapply(partition.labels, function(l) {
+        b <- grep(sprintf("^(?!.*%s).*%s.*$", "con", l), names(predictions.outcome.and.tc), perl=TRUE)
+        vec <- predictions.outcome.and.tc[b]
+        nri <- EvaluateReclassification(
+            current.model.predictions=vec[[grep("tc", names(vec))]],
+            new.model.predictions=vec[[grep("model", names(vec))]],
+            outcome.vector=vec[[grep("y", names(vec))]],
+            )
+        r <- c(nri["NRI+", ], nri["NRI-", ])
+        names(r) <- paste0(c("nri.plus.", "nri.minus."), l)
+        return(r)
+    }))
     ## As vector of estimates for the boot package
-    relevant.estimates <- c(auc.vector, nri)
+    estimates <- c(auc.vector, nri)
     timestamp <- Sys.time()
     if (log) {
         analysis_name <- "Main"
@@ -53,5 +83,5 @@ ComputeAucAndNri <- function(data, indices, boot.sample = FALSE,
         append <- ifelse(clean.start, FALSE, TRUE)
         write(logline, "logfile", append = append)
     }   
-    return (relevant.estimates)
+    return (estimates)
 }
