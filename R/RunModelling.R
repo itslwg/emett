@@ -27,7 +27,7 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
         save.sample.predictions=TRUE,
         n.partitions=n.partitions,
         boot.sample=FALSE,
-        use.fitted.sl=FALSE,
+        use.fitted.sl=TRUE,
         verbose=verbose
     )
     if (verbose)
@@ -57,6 +57,7 @@ RunModelling <- function(study.sample, outcome.variable.name, n.partitions=3,
         clean.start=FALSE
     )
     if (save.statistics)
+
         bengaltiger::SaveToResults(output.object = statistics,
                                    object.name = paste0(outcome.variable.name, ".statistics"))
 

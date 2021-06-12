@@ -21,8 +21,9 @@ ComputeAucAndNri <- function(data, indices, n.partitions = 3,
     ## Partition the sample, fit the model and predict on out-of-sample
     predictions.outcome.and.tc <- PartitionTrainAndPredict(study.sample = d,
                                                            boot.sample=boot.sample,
+                                                           n.partitions = n.partitions,
                                                            ...)$predictions.list
-    predictions.outcome.and.tc <- results$s30d.results$predictions.list
+    # predictions.outcome.and.tc <- results$s30d.results$predictions.list
     ## Evaluate AUC on the test set for both continuous and binned predictions
     l <- predictions.outcome.and.tc[grep("model", names(predictions.outcome.and.tc), value=TRUE)]
     model.aucs <- sapply(setNames(nm=names(l)), function(nm) {
@@ -45,8 +46,8 @@ ComputeAucAndNri <- function(data, indices, n.partitions = 3,
         return (e)
     })
     ## Compare model auc to clinician auc
-    model.clinician.difference <- setNames(model.aucs - clinicians.auc$clinician.auc,
-                                           nm = paste0(names(model.aucs), ".diff"))
+    model.clinician.difference <- setNames(model.aucs - clinician.aucs,
+                                           nm = paste0(names(model.aucs), ".clinician.diff"))
     ## Check if model performance is worse with binning
     partition.labels <- unique(sub(".*\\.", "", names(model.aucs)))
     con.cat.auc.difference <- unlist(lapply(partition.labels, function(l) {
@@ -59,7 +60,7 @@ ComputeAucAndNri <- function(data, indices, n.partitions = 3,
     }))
     ## Compile aucs to one vector
     auc.vector <- c(model.aucs, clinician.aucs, model.clinician.difference, con.cat.auc.difference)
-    ## Evaluate nri on the test set
+    ## Evaluate nri
     nri <- unlist(lapply(partition.labels, function(l) {
         b <- grep(sprintf("^(?!.*%s).*%s.*$", "con", l), names(predictions.outcome.and.tc), perl=TRUE)
         vec <- predictions.outcome.and.tc[b]

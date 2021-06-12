@@ -16,9 +16,10 @@ CreateClassifierPlots <- function(samples, outcomes,
                                       composite.results="./SuperLearner_composite.rds"
                                   ),
                                   pretty.model.nms = c("SuperLearner",
-                                                       "Random Forest",
-                                                       "Neural Net"),
-                                  file.name = "learners.roc", device = "pdf",
+                                                       "XGBoost",
+                                                       "GLMNet"),
+                                  file.name = "learners.roc",
+                                  dir.name = "./figures/", device = "pdf",
                                   plot.labels = list(s30d.results="A", composite.results="B"),
                                   ...) {
     plot.list <- lapply(names(samples), function(nm) {
@@ -33,17 +34,23 @@ CreateClassifierPlots <- function(samples, outcomes,
         tpr.fpr <- GetPerformanceList(predictions.list, measures, outcomes[[nm]])
         roc.plot.data <- CreatePlotData(tpr.fpr, plot.labels[[nm]])
         ## Create plots
-        roc.plot <- PlotRoc(roc.plot.data)
-    })
+        roc.plot <- PlotRoc(
+            roc.plot.data,
+            y,
+            xlab = "False Positive Rate",
+            ylab = "True Positive Rate",
+        )
+    })     
     ## Arrange plot grid
     combined.plot <- ggpubr::ggarrange(plotlist=plot.list,
                                        ncol = 2,
                                        common.legend = TRUE,
                                        legend = "bottom",
                                        align = "hv")
+    file.path <- paste0(dir.name, file.name)
     ## Save plot
     SavePlot(combined.plot,
-             file.name = file.name,
+             file.name = file.path,
              device = device,
              ...)
 }

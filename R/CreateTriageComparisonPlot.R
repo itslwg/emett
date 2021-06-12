@@ -2,21 +2,26 @@
 #'
 #' Creates a comparison plot of clinicians and models in predicting the outcome.
 #' @param predictions.outcome.and.tc List. Predictions, outcome and clinicians triage as list. No default.
+#' @param outcome.variable.name Character vector of length 1. Label for the outcome variable, used for saving to results. Defaults to "s30d" 
 #' @param model.labels Character vector of length 1. Element names for model predictions in predictions.outcome.and.tc. If NULL those model predictions whose list label contain "test" but also "cut", "CUT", or "tc". Defaults to NULL.
 #' @param file.name Character vector of length 1. File name to use for saving the plot. Defaults to NULL, and no plot is saved.
 #' @param device Character vector of length 1. The device to use for saving ggplot. Defaults to "pdf".
 #' @param outcome.label Character vector of length 1. List label of the outcome.variable. Defaults to "y.test". 
 #' @param pretty.names Character vector of length 1. Pretty names for the models to use in the plot. If NULL, Defaults to c("SuperLearner", "Clinicians")
 #' @param pretty.labels Character vector. Number of Default/No default. 
-#' @param save.plot.data.to.results Logical. If TRUE the plot data is saved to results. Defaults to TRUE.
+#' @param save.plot.data.to.results Logical vector of length 1. If TRUE the plot data is saved to results. Defaults to TRUE.
+#' @param save.plot.to.results Logical vector of length 1. If TRUE the plot is saved to the results list. Defaults to TRUE.
 #' @param ... Additional arguments for SavePlot.
 #' @export
-CreateTriageComparisonPlot <- function(predictions.outcome.and.tc, file.name = NULL,
+CreateTriageComparisonPlot <- function(predictions.outcome.and.tc,
+                                       outcome.variable.name = "s30d",
+                                       file.name = NULL, dir.name = "./figures/",
                                        device = "pdf", model.labels = NULL,
                                        outcome.label = "y.test",
                                        pretty.names = c("SuperLearner", "Clinicians"),
                                        pretty.labels = c("Survived", "Died"),
                                        save.plot.data.to.results = TRUE,
+                                       save.plot.to.results = TRUE,
                                        ...) {
     ## Error handling
     if (!is.list(predictions.outcome.and.tc))
@@ -45,12 +50,19 @@ CreateTriageComparisonPlot <- function(predictions.outcome.and.tc, file.name = N
         return(data)
     }, model.labels, pretty.names, SIMPLIFY = FALSE))
     if (save.plot.data.to.results)
-        bengaltiger::SaveToResults(plot.data, "triage.comparison.plot.data")
+        suppressMessages({
+            bengaltiger::SaveToResults(plot.data, paste0(outcome.variable.name, ".triage.comparison.plot.data"))  
+        })
     ## Create plot and save plot
     plt <- PlotTriageComparison(plot.data)
+    file.path <- paste0(dir.name, file.name)
+    if (save.plot.to.results)
+        suppressMessages({
+            bengaltiger::SaveToResults(plt, file.name)
+        })
     if (!is.null(file.name))
         SavePlot(plot.object = plt,
-                 file.name = file.name,
+                 file.name = file.path,
                  device = device)
     return (plt)
 }

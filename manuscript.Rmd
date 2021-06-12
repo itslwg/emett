@@ -1,8 +1,11 @@
 ---
 title: An Ensemble Model for Emergency Department Trauma Triage (EMETT)
 bibliography: bibliography.bib
+header-includes:
+   - \usepackage{threeparttable}
 output:
-  bookdown::pdf_document2: default
+  bookdown::pdf_document2:
+      toc: false
 ---
 
 Ludvig Wärnberg Gerdin^1,\*^ , Alan Hubbard^2^, Anurag Mishra^3^,
@@ -11,7 +14,7 @@ Greeshma Abraham^5^ Jyoti Kamble^5^, Kapil Dev Soni^7^, Makhan Lal
 Saha^8^, Monty Khajanchi^9^, Nitin Borle^10^, Vineet Kumar^11^, Sara
 Moore^2^, Martin Gerdin Wärnberg^12\*,\*\*^
 
-**1** KTH Royal Institute of Technology, Stockholm, Sweden
+**1** Department of Industrial Economics and Management, KTH Royal Institute of Technology, Stockholm, Sweden 
 
 **2** Division of Epidemiology and Biostatistics, School of Public
 Health, University of California, Berkeley, California, USA
@@ -90,20 +93,20 @@ operating characteristics curve (AUROCC). We concluded that the
 SuperLearner was non-inferior to clinicians if the lower bound of the
 95% confidence intervals (CI) of the net reclassification in events
 was not less than -0.05. From 28 July 2016 to 21 November 2017 we
-approached a total of `r n_enrolled` patients for enrolment. Out of
-these, `r n_after_excluding_missing_outcome` patients consented,
+approached a total of `r results$n.enrolled` patients for enrolment. Out of
+these, `r results$n.consent` patients consented,
 had a priority level assigned by a clinician, and had complete outcome
 data and were therefore included in subsequent analysis. A total of
-`r report("s30d", "Yes")` patients died within 30 days. We used
+`r ` patients died within 30 days. We used
 a temporal split to divide the cohort into a training and test
-sample. The training sample included `r n_training_sample`
-patients and the test sample `r n_test_sample` patients. The
+sample. The training sample included `r nrow(results$s30d.results$samples$train)`
+patients and the test sample `r nrow(results$s30d.results$samples$test)` patients. The
 AUROCCs of the priority levels assigned by the SuperLearner and
-clinicians were `r superlearner_cat_auc_test` and
-`r tc_auc_test` respectively. The difference in AUROCC was
-`r diff_superlearner_cat_tc_auc`. The net reclassification in
-events was `r nre` and in non-events `r nrne`.
-
+clinicians were `r results$estimates.s30d["cut.model.test"]` and
+`r results$estimates.s30d["tc.test"]` respectively. The difference in AUROCC was
+`r results$estimates.s30d["cut.model.test.diff"]`. The net reclassification in
+events was `r results$estimates.s30d["nri.plus.test"]` and in non-events `r results$estimates.s30d["nri.minus.test"]`.
+	
 Conclusions 
 -----------
 
@@ -130,9 +133,9 @@ clinician gestalt based on patients' presentation.
 What did the researchers do and find? 
 -------------------------------------
 
-We analysed data from `r n_after_excluding_missing_outcome` adult trauma
+We analysed data from `r results$descriptive.statistics$n.has.triage.category` adult trauma
 patients who presented to emergency departments at three public hospitals in
-urban India. Out of these `r report("s30d", "Yes")` patients died from any
+urban India. Out of these `r Report("All cause 30-day mortality", "Yes", "s30d")` patients died from any
 cause within 30 days of arrival to a participating hospital. We used the
 SuperLearner to combine multiple machine learners to assign priority levels to
 included trauma patients based on demographic and clinical patient
@@ -183,7 +186,7 @@ department has received little attention from the research
 community. Framed as a classification problem this challenge can be
 addressed using a statistical learner. Logistic or proportional
 hazards models are common classification learners whereas more modern
-alternatives include random forests or convolutional neural networks.
+alternatives include random forests or neural networks.
 
 The uptake and use of such learners in trauma research has been slow
 [@Liu2017]. One recent study used a random forest learner to assign
@@ -314,12 +317,30 @@ Variables, Data Sources and Measurement
 
 ### Patient characteristics and ensemble model variables 
 
-The label used to train the ensemble model was all-cause 30 day
+The ensemble model were trained on two target variables. 
+The first target was all-cause 30 day
 mortality, defined as death from any cause within 30 days of arrival
 to a participating centre. These data were extracted from patient
 records if the patient was still in hospital 30 days after arrival, or
 collected by calling the patient or the patient representative if the
-patient was not in hospital.
+patient was not in hospital. The second target was a composite outcome of
+early mortality, ICU admission, major urgent surgery and severe injury. 
+Early mortality was defined as death within 24 hours of arrival to 
+the participating hospitals. ICU admission was defined as admission
+to the ICU within 48 hours of arrival. While most ICU admissions occur
+within hours of hospital arrival, we extended the time frame to
+compensate for bed availability and transfer delays. 
+Major urgent surgery was defined as a major surgery performed within 
+24 hours of arrival to the participating hospitals. Surgical excerpts 
+were reworked into standardized nomenclature using the Nordic
+Medico-Statistical Committee (NOMESCO) Classification of surgical
+Procedures, and the Systematized Nomenclature in Medicine Clinical
+Terms (SNOMED CT). In the lack of a general definition of major surgery, 
+a team of experienced surgeons and researches decided on what surgeries 
+to consider as major. Severe injury was defined as an Injury Severity
+Score (ISS) over 15. This cutoff-value for severe injury is traditionally
+sued in trauma research since it is said to indicate a 10 % mortality 
+(@Boyd1987). TAKEN FROM CELINAS PAPER
 
 The features included patient age in years, sex, mechanism of injury,
 type of injury, mode of transport, transfer status, time from injury
@@ -411,11 +432,12 @@ transport, transfer status, and GCS components) were treated as bins
 
 ### Development of the ensemble model
 
-We then developed our ensemble model in the training set using the
-SuperLearner R package [@SuperLearner]. SuperLearner is an ensemble
-machine learning algorithm, meaning that it uses a library of
-techniques or specific learners, in principle any technique or learner
-that the analyst wants, to come up with an "optimal learner". Table
+The study sample was split into three parts, henceforth referred 
+to as the training, validation, and test sets. 
+We then developed our ensemble model in the training and validation sets
+using the SuperLearner R package [@SuperLearner]. SuperLearner is an ensemble
+machine learning algorithm, meaning that it combines predictions several 
+learners to come up with an "optimal" learner. Table
 \@ref(tab:superlearner-library) shows our library of learners. All
 were implemented using the default hyperparameters. Short descriptions
 of the individual learners are available as supporting
@@ -430,37 +452,39 @@ evaluated in the tenth. This procedure is then repeated ten times,
 i.e. each part is used once as the evaluation data, and is intended to
 limit overfitting and reduce optimism.
 
+The ensemble model predictions was then used to assign levels of priority 
+to patients. This was done by binning the ensemble
+model prediction into four bins using cutoffs identified using a grid
+search to optimize the area under the receiver operation
+characteristics curve (AUROCC) across all possible combinations of
+unique cutoffs, where each cutoff could take any value from 0.01 to
+0.99 in 0.01 unit increments. These bins corresponded to the green,
+yellow, orange, and red priority levels assigned by the
+clinicians. The cutoffs were identified in the validation set in order 
+to prevent information leakage and limit bias. The performance of both
+the continuous ensemble model prediction and the ensemble model priority 
+levels was then evaluated by estimating their AUROCC. We also visualised the
+performance by plotting ROC curves.
 
-```{r superleaner-library, echo=FALSE}
-tibble::tribble
+```{r superlearner-library, echo=FALSE}
+create <- function()
+    return (tibble::tribble
 (
-    ~Learner,                                     ~"R package",                 ~"SuperLearner function",
+    ~Learner,                                      ~"R package",                  ~"SuperLearner function",
     "Breiman's random forest algorithm",            "randomForest [@randomforest]", "SL.randomForest",
     "Extreme Gradient Boosting machine",            "XGboost [@xgboost]",           "SL.xgboost",
     "Generalized Linear Model",                     "glm (built-in)",               "SL.glm",
     "Generalized Additive Model",                   "gam [@gam]",                   "SL.gam",
     "Penalized regression model using elastic net", "glmnet [@glmnet]",             "SL.glmnet"
-)  %>% knitr::kable(caption = "Learners included in our SuperLearner library")
+)  %>% knitr::kable(format = "latex", booktabs=TRUE, caption = "Algorithms combined to SuperLearner."))
 
+create()
 ```
-
-The ensemble model was then used to assign levels of priority to the
-patients in the training set. This was done by binning the ensemble
-model prediction into four bins using cutoffs identified using a grid
-search to optimize the area under the receiver operation
-characteristics curve (AUROCC) across all possible combinations of
-unique cutoffs, where each cutoff could take any value from 0.01 to
-0.99 in 0.01 unit increments.  These bins corresponded to the green,
-yellow, orange, and red priority levels assigned by the
-clinicians. The performance of both the continuous ensemble model
-prediction and the ensemble model priority levels in the training set
-was then evaluated by estimating their AUROCC. We also visualised the
-performance by plotting ROC and precision-recall curves.
 
 ### Comparing the ensemble model and Clinicians
 
 We then used the ensemble model to predict the outcomes of the
-patients in the test set and used the cutoff values from the training
+patients in the test set and used the cutoff values from the validation
 set to assign a level of priority to each patient in this set. The
 performance of the continuous ensemble prediction, the ensemble model
 priority levels, and the clinicians' priority levels, was then
@@ -501,110 +525,123 @@ non-missingness indicators as features in the ensemble model.
 Results
 =======
 
-During the study period, we approached a total of `r
-round(n_enrolled*1.01)` patients for enrolment. A random sample of `r
-round(n_enrolled*0.01)` observations were removed during data
-de-identification. Consent was declined by `r n_enrolled -
-n_after_excluding_no_consent` patients. Out of the `r
-n_after_excluding_no_consent` patients who provided informed consent,
-`r n_after_excluding_no_consent - n_after_excluding_missing_priority`
-had missing data on priority level assigned by clinicians, leaving `r
-n_after_excluding_missing_priority` patients. An additional `r
-n_after_excluding_missing_priority -
-n_after_excluding_missing_outcome` were excluded because of missing
-outcome data. Thus, the final study sample included `r
-n_after_excluding_missing_outcome` patients.
+During the study period, we approached a total of 
+`r sprintf("%d", round(as.integer(results$s30d.descriptive.statistics$n.enrolled)*1.01))` patients for enrolment.
+A random sample of 
+`r round(as.integer(results$s30d.descriptive.statistics$n.enrolled)*0.01)` 
+observations were removed during data
+de-identification. Consent was declined by
+`r results$s30d.descriptive.statistics$n.not.consent` patients. Out of the 
+`r results$s30d.descriptive.statistics$n.consent` patients who provided informed consent,
+`r results$s30d.descriptive.statistics$n.not.adults` were not adults, and
+`r results$s30d.descriptive.statistics$n.not.has.triage.category` had missing information on
+triage category, leaving `r results$s30d.descriptive.statistics$n.has.triage.category`.
+For 30-day mortality, 
+`r results$s30d.descriptive.statistics$n.not.complete.outcome` had missing outcome data, whereas for the composite outcome `r results$composite.descriptive.statistics$n.not.complete.outcome` had missing data. 
+Thus, the final samples included `r results$s30d.descriptive.statistics$n.complete.outcome` and
+`r results$composite.descriptive.statistics$n.complete.outcome` patients for the 30-day mortality and composite outcomes, respectively.
 
-Table \@ref(tab:sample-characteristics) shows the characteristics of
-our study sample. A total of `r report('n', strata = 'Missing
-values')` patients had missing values in at least one feature. Among
-the included patients the median age was `r report('age')` years. A
-majority, `r report('sex', 'Male')` patients, were males. The most
-common mechanism of injury was transport accidents, accounting for `r
-report('moi', 'Transport accident')` patients. A total of `r
-report('mot', 'Private vehicle')` patients were transported to
+```{r, out.width="0.5\\linewidth", include=TRUE, fig.align="center", fig.cap=c("Study flowchart."), echo=FALSE}
+knitr::include_graphics("./figures/flowchart.manual.pdf")
+```
+
+Table \@ref(tab:s30d-sample-characteristics) and \@ref(tab:composite-sample-characteristics) shows the
+characteristics of
+our samples. A total of `r Report("n", strata = "Missing values")` patients had missing values in at least one feature. Among
+the included patients the median age was `r Report(variable="Age in years", data.variable="age")` years. A
+majority, `r Report("Sex", "Male", "sex")` patients, were males. The most
+common mechanism of injury was transport accidents, accounting for `r Report("Mechanism of injury", "Transportation accident", "moi")` 
+patients. 
+A total of `r Report("Mode of transport", "Private vehicle", "mot")` patients were transported to
 participating centres in some sort of private vehicle, such as a car,
 taxi, or rickshaw. A majority of patients had normal vital signs on
-arrival to participating centres. Out of all patients, `r
-report('s30d', 'Yes')` died within 30 days of arrival. The number of
-patients in the training and test samples were `r n_training_sample`
-and `r n_test_sample` respectively.
+arrival to participating centres. Out of all patients, `r Report("All cause 30-day mortality", "Yes", "s30d")` died within 30 days of arrival. 
+The number of patients in the training, validation, and test samples were `r nrow(results$s30d.results$samples$train)`,
+`r nrow(results$s30d.results$samples$validation)`, and `r nrow(results$s30d.results$samples$test)`, respectively.
 
-```{r sample-characteristics, echo=FALSE}
-## Need to save table as data frame or equivalent before this will
-## work
-knitr::kable(table_of_sample_characteristics,
-             caption = "Sample characteristics")
+```{r s30d-sample-characteristics, echo=FALSE}
+kableExtra::kbl(results$s30d.formatted.sample.characteristics,
+                format = "latex",
+                booktabs = TRUE,
+                caption = "Sample characteristics for 30-day mortality") %>%
+    kableExtra::kable_styling(latex_options="scale_down") %>%
+        kableExtra::footnote(general = "Abbreviations and explanations: AVPU, Alert, voice, pain, unresponsive scale; DBP, Diastolic blood pressure in mmHg; Delay, Time between injury and arrival to participating centre in minutes; EGCS, Eye component of the Glasgow Coma Scale; HR, Heart rate; MGCS, Motor component of the Glasgow Coma Scale; RR, Respiratory rate in breaths per minute; SBP, Systolic blood pressure in mmHg; SpO\textsubscript{2}, Peripheral capillary oxygen saturation; Transferred, Transferred from another health facility; VGCS, Verbal component of the Glasgow Coma Scale",, threeparttable=TRUE)
+```
+
+```{r composite-sample-characteristics, echo=FALSE}
+kableExtra::kbl(results$composite.formatted.sample.characteristics,
+                format = "latex",
+                booktabs = TRUE,
+                caption = "Sample characteristics for composite outcome") %>%
+    kableExtra::kable_styling(latex_options="scale_down") %>%
+        kableExtra::footnote(general = "Abbreviations and explanations: AVPU, Alert, voice, pain, unresponsive scale; DBP, Diastolic blood pressure in mmHg; Delay, Time between injury and arrival to participating centre in minutes; EGCS, Eye component of the Glasgow Coma Scale; HR, Heart rate; MGCS, Motor component of the Glasgow Coma Scale; RR, Respiratory rate in breaths per minute; SBP, Systolic blood pressure in mmHg; SpO\textsubscript{2}, Peripheral capillary oxygen saturation; Transferred, Transferred from another health facility; VGCS, Verbal component of the Glasgow Coma Scale",, threeparttable=TRUE)
 ```
 
 The AUROCC of the continuous ensemble model prediction in the training
-sample was `r superlearner_con_auc_train`
-(Fig. \@ref(fig:roc-plot)A). The cutpoints identified by the grid
-search were `r optimal_breaks[1]`, `r optimal_breaks[2]`, and `r
-optimal_breaks[3]`. We used these cutpoints to bin the continuous
+sample was `r results$estimates.s30d["con.model.train"]`
+(Fig. \@ref(fig:roc-plot)A) whereas the AUROCC in the validation 
+sample was `r results$estimates.s30d["con.model.validation"]`.
+The cutpoints identified by the grid search in the validation sample were `r results$s30d.optimal.breaks[1]`,
+`r results$s30d.optimal.breaks[2]`, and 
+`r results$s30d.optimal.breaks[3]`. We used these cutpoints to bin the continuous
 ensemble model prediction into the four priority levels green, yellow,
 orange, and red. The AUROCC of the ensemble model priority levels in
-the training sample was `r superlearner_cat_auc_train`.
-Fig. \@ref(fig:prec-rec-plot)A shows the precision-recall curves in
-the training sample.
+the training and validation sample was `r results$estimates.s30d["cut.model.train"]` 
+and `r results$estimates.s30d["cut.model.validation"]` .
 
-```{r roc-plot, echo=FALSE,
-fig.cap="Receiver operating characteristics curves in training (A) and test (B) samples"}
-## Need to use ggplot2 to create these plots and save somewhere for
-## this to work
-roc.plot
-```
-
-```{r prec-rec-plot, echo=FALSE,
-fig.cap="Precision-recall curves in training (A) and test (B) samples"}
-## Need to use ggplot2 to create these plots and save somewhere for
-## this to work
-prec.rec.plot
+```{r roc-plot, echo=FALSE, fig.cap="Receiver operating characteristics curves in training (A), validation (B), and test (C) samples"}
+results$roc.plot.s30d
 ```
 
 We then applied the ensemble model to the test sample. The AUROCC of
-the continuous ensemble model prediction was `r
-superlearner_con_auc_test` (Fig \@ref(fig:roc-plot)B). The performance
+the continuous ensemble model prediction was `r results$estimates.s30d["con.model.test"]` 
+(Fig \@ref(fig:roc-plot)B). The performance
 of each included learner is available as supporting information in
 \nameref{S3_Fig} and \nameref{S4_Table}. We used the same cutpoints as
 in the training sample to bin the continuous predictions into the four
 priority levels. The AUROCC of the ensemble model priority levels in
-the test sample was `r superlearner_cat_auc_test`. Fig
-\@ref(fig:prec-rec-plot)B shows the precision-recall curves in the
-test sample.
+the test sample was `r results$estimates.s30d["cut.model.test"]`.
 
 In the test sample we compared the performance of the binned ensemble
 model prediction with that of clinicians. The AUROCC of priority
-levels assigned by clinicians was `r tc_auc_test`. The difference in
+levels assigned by clinicians was `r results$estimates.s30d["tc.test"]`. The difference in
 AUROCC between the ensemble model priority levels and clinicians was
-`r diff_superlearner_cat_tc_auc`. The net reclassification in events
-and non-events were `r nre` and `r nrne` respectively. The overall
-reclassification is shown in Table \@ref(tab:reclass-all)}.
+`r results$estimates.s30d["cut.model.test.diff"]`. The net reclassification in events
+and non-events were `r results$estimates.s30d["nri.plus.test"]` and `r results$estimates.s30d["nri.minus.test"]` respectively. The overall reclassification is presented in Table \@ref(tab:composite-reclass-all).
 
-```{r reclass-all, echo=FALSE}
-knitr::kable(reclass.all, caption = "Reclassification measures")
+
+```{r s30d-reclass-all, results='asis', echo=FALSE}
+#kableExtra::kbl(results$classification.tables.s30d$reclass.all,
+#                format = "latex",
+#                booktabs = TRUE,
+#                caption = "Reclassification measures for s30d") %>%
+                                        #    kableExtra::kable_styling(latex_options="scale_down")
 ```
 
-Fig \@ref(fig:mortality.plot) shows that the number of patients
+```{r composite-reclass-all, echo=FALSE}
+kableExtra::kbl(results$composite.classification.tables$reclass.all, format = "latex",
+                booktabs = TRUE, caption = "Reclassification measures for composite outcome") %>%
+        kableExtra::add_header_above(c(" " = 1, "SuperLearner" = 4, " " = 3)) %>%
+        kableExtra::footnote(general = "Reclassification (Rec.) figures refer to % of patients reclassified by the SuperLearner compared to clinicians. Rec. up and Rec. down indicates % of patients reclassified to a higher or lower priority level respectively.", threeparttable=TRUE)
+```
+
+Fig \@ref(fig:composite-mortality-plot) shows that the number of patients
 assigned to each priority level differed substantially between the
 SuperLearner and clinicians. This difference was particularly marked
 in the green and yellow priority levels. The ensemble model assigned
-the green priority level to `r mortality_plot_data[1,4]` patients
-whereas clinicians assigned this level to `r mortality_plot_data[9,4]`
+the green priority level to `r results$composite.triage.comparison.plot.data[1,4]` patients
+whereas clinicians assigned this level to `r results$composite.triage.comparison.plot.data[9,4]`
 patients. Among the patients that the ensemble model prioritised as
-green `r mortality_plot_data[5,2]` died. The corresponding figure for
-the clinicians was `r mortality_plot_data[13,2]`. In contrast, the
-ensemble model assigned the yellow priority level to `r
-mortality_plot_data[2,4]` patients, out of which `r
-mortality_plot_data[6,2]` died. Corresponding figures for the
-clinicians were `r mortality_plot_data[10,4]` and `r
-mortality_plot_data[14,2]`.
+green `r results$composite.triage.comparison.plot.data[5,2]` had the composite outcome. The corresponding 
+figure for the clinicians was `r results$composite.triage.comparison.plot.data[13,2]`. In contrast, the
+ensemble model assigned the yellow priority level to
+`r results$composite.triage.comparison.plot.data[2,4]` patients, out of which 
+`r results$composite.triage.comparison.plot.data[6,2]` died. Corresponding figures for the
+clinicians were `r results$composite.triage.comparison.plot.data[10,4]` and 
+`r results$composite.triage.comparison.plot.data[14,2]`.
 
-```{r mortality-plot, echo=FALSE, 
-fig.cap="Number of patients assigned to each priority level by the
-SuperLearner and clinicians in the test sample. Percentages are
-% with all cause 30-day mortality at each level"}
-mortality.plot
+```{r composite-mortality-plot, echo=FALSE, warning=FALSE, fig.cap="Number of patients assigned to each priority level by the SuperLearner and clinicians in the test sample. Percentages are with all cause 30-day mortality at each level"}
+results$triage.comparison.plot.composite
 ```
 
 Discussion

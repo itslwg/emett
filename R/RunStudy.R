@@ -3,6 +3,7 @@
 #' Conducts data fetching and preparation, modelling, predictions, and summarizes results.
 #' @export
 RunStudy <- function(verbose = TRUE) {
+    options(knitr.table.format = "latex") 
     print_trace_back <- function() {
         print(rlang::trace_back(bottom = sys.frame(-1)))
     }
@@ -10,16 +11,12 @@ RunStudy <- function(verbose = TRUE) {
     if (verbose)
         message("\n~~~~~~~~~~~~~~~~~~~~~~~\nPreparing the sample...\n~~~~~~~~~~~~~~~~~~~~~~~\n")
     ## Set parameters that are default in make.study
-    # file.remove("results.Rds")
     n.bootstrap.samples <- 2
     n.partitions <- 3
     study.variables <- c("age", "moi", "sex", "mot", "tran", "s30d", "egcs", "mgcs", "vgcs", "avpu", "hr",
                             "sbp", "dbp", "spo2", "rr", "tc", "ic", "doar", "toar", "doi", "toi", "s24h", "hd",
                             "taicu", "daicu", "tos", "dos", "nomesco", "snomed", "s", "iss")
     pretty.model.names <- c("SuperLearner", "Random Forest")
-    ## Fetch and merge datasets and conduct feature engineering
-    study.sample <- PrepareSample(study.variables=study.variables)
-    ## Run modelling on the outcomes of interest
     settings <- list(
         s30d.results=list(
             outcome.label="s30d",
@@ -37,28 +34,37 @@ RunStudy <- function(verbose = TRUE) {
             )
         )
     )
-    test.partitions <- list()
+    ## Fetch, merge datasets and conduct feature engineering
+    study.sample <- PrepareSample(
+        study.variables=study.variables,
+        settings=settings
+    )
+    partitions <- list()
     modelling.list <- lapply(settings, function(s) {
         variables.to.drop <- s$variables.to.drop
         outcome.variable.name <- s$outcome.label
         study.sample <- study.sample[
           , !grepl(paste0(variables.to.drop, collapse="|"), names(study.sample))
         ]
-        test.partitions[[paste0("test.partition.", outcome.variable.name)]] <<- PartitionSample(
-            study.sample,
-            outcome.variable.name,
+        partitions[[paste0("partitions.", outcome.variable.name)]] <<- PartitionSample(
+            study.sample=study.sample,
+            outcome.variable.name=outcome.variable.name,
             n.partitions=3
-        )$test$x
-        return (
-            c(RunModelling(study.sample, outcome.variable.name,
-                           n.bootstrap.samples=n.bootstrap.samples,
-                           save.samples = FALSE),
-              list(test.sample=PartitionSample(study.sample, outcome.variable.name, n.partitions)$test$x))
         )
+        m <- RunModelling(study.sample, outcome.variable.name,
+                          n.bootstrap.samples=n.bootstrap.samples,
+                          save.samples = FALSE)
+        ts <- list(test.sample=PartitionSample(study.sample, outcome.variable.name, n.partitions)$test$x)
+        r <- c(m, ts)
+        
+        return (r)
     })
-    saveRDS(test.partitions, "./test.partitions.Rds")
+    saveRDS(partitions, "./partitions.Rds")
     ## Summarize the results
-    ## SummarizeResults(statistics)
+    SummarizeResults()
+    ## Render manuscript
+    results <- readRDS("results.Rds")
+    rmarkdown::render("./manuscript.Rmd")
     message("Study analysis complete.")
 }
 

@@ -12,6 +12,7 @@
 #' @export
 CreateRocPlot <- function(predictions.outcome.and.tc,
                           file.name = "roc.plot",
+                          dir.name = './figures/',
                           device = "pdf", plot.type = "roc",
                           model.labels = c("con.model.train",
                                            "cut.model.train",
@@ -30,7 +31,8 @@ CreateRocPlot <- function(predictions.outcome.and.tc,
                                            "SuperLearner priority levels",
                                            "Clinicians priority levels",
                                            "Clinicians priority levels",
-                                           "Clinicians priority levels"), ...) {
+                                           "Clinicians priority levels"),
+                          ...) {
     ## Error handling
     if (!is.list(predictions.outcome.and.tc))
         stop("predictions.outcome.and.tc must be of type list")
@@ -82,9 +84,13 @@ CreateRocPlot <- function(predictions.outcome.and.tc,
     plt <- PlotRoc(plot.data = plot.data, y.name = measures[[1]],
                    x.name = measures[[2]], ylab = measures[[3]],
                    xlab = measures[[4]], ...)
+    file.path <- paste0(dir.name, file.name)
     if (!is.null(file.name))
         SavePlot(plot.object = plt,
-                 file.name = file.name,
+                 file.name = file.path,
                  device = device)
+    suppressWarnings({
+        bengaltiger::SaveToResults(plt, file.name)
+    })
     return (plt)
 }

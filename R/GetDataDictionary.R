@@ -14,9 +14,11 @@ GetDataDictionary <- function(data.path = "./extdata/", file.name = "data_dictio
     data.dictionary <- data.table::fread(fp, data.table = FALSE)
     ## Modify data dictionary column names
     data.dictionary.names <- names(data.dictionary) # Store current dictionary names
-    new.names <- unlist(lapply(data.dictionary.names, function(x) unlist(strsplit(x, "\\(|\\)"))[2])) # Get short names
+    new.names <- unlist(lapply(data.dictionary.names,
+                               function(x) unlist(strsplit(x, "\\(|\\)"))[2])) # Get short names
     names(data.dictionary) <- new.names # Apply names
     ## Make a list of the data dictionary
-    data.dictionary.list <- lapply(setNames(nm = data.dictionary$vn), function(x) as.list(data.dictionary[data.dictionary$vn == x, ]))
+    data.dictionary.list <- lapply(setNames(nm = data.dictionary$vn),
+                                   function(x) as.list(data.dictionary[data.dictionary$vn == x, ]))
     return(data.dictionary.list)
 }
